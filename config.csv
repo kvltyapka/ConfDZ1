@@ -1,0 +1,4 @@
+hostname,MyComputer
+filesystem_path,virtual_fs.zip
+log_path,log.csv
+startup_script,startup_script.sh
