@@ -5,7 +5,7 @@ use zip::read::ZipArchive;
 
 mod commands;
 use commands::{
-    BaseCommand, CDCommand, ClearCommand, ExitCommand, FindCommand, LSCommand, WhoamiCommand,
+    BaseCommand, CDCommand, ChmodCommand, ClearCommand, ExitCommand, FindCommand, LSCommand,
 };
 
 struct ShellEmulator {
@@ -85,9 +85,9 @@ impl ShellEmulator {
                 new_path
             }
             "exit" => ExitCommand::run(&self.vfs, &self.current_path, args),
-            "whoami" => WhoamiCommand::run(&self.vfs, &self.current_path, args),
             "find" => FindCommand::run(&self.vfs, &self.current_path, args),
             "clear" => ClearCommand::run(&self.vfs, &self.current_path, args),
+            "chmod" => ChmodCommand::run(&self.vfs, &self.current_path, args),
             _ => "Unknown command".to_string(),
         };
         self.log_command(command);

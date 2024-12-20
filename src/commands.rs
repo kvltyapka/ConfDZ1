@@ -71,14 +71,6 @@ impl BaseCommand for ExitCommand {
     }
 }
 
-pub struct WhoamiCommand;
-
-impl BaseCommand for WhoamiCommand {
-    fn run(_vfs: &Vec<String>, _current_path: &str, _args: &[&str]) -> String {
-        "root".to_string()
-    }
-}
-
 pub struct FindCommand;
 
 impl BaseCommand for FindCommand {
@@ -103,6 +95,21 @@ impl BaseCommand for ClearCommand {
     }
 }
 
+pub struct ChmodCommand;
+
+impl BaseCommand for ChmodCommand {
+    fn run(vfs: &Vec<String>, _current_path: &str, args: &[&str]) -> String {
+        if args.len() < 2 {
+            return "Error: not enough arguments".to_string();
+        }
+        let file_path = args[1];
+        if vfs.contains(&file_path.to_string()) {
+            format!("Changed permissions for {}", file_path)
+        } else {
+            "Error: file not found".to_string()
+        }
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -121,6 +128,7 @@ mod tests {
         let result = LSCommand::run(&vfs, "/folder1/", &[]);
         assert!(result.contains("file1.txt"));
         assert!(result.contains("file2.txt"));
+        assert!(!result.contains("file3.txt"));
     }
 
     #[test]
@@ -138,17 +146,17 @@ mod tests {
     }
 
     #[test]
+    fn test_cd_non_existent_directory() {
+        let vfs = setup_vfs();
+        let result = CDCommand::run(&vfs, "/", &["non_existent_folder"]);
+        assert_eq!(result, "Error: path not found");
+    }
+
+    #[test]
     fn test_exit_command() {
         let vfs = setup_vfs();
         let result = ExitCommand::run(&vfs, "/", &[]);
         assert_eq!(result, "exit");
-    }
-
-    #[test]
-    fn test_whoami_command() {
-        let vfs = setup_vfs();
-        let result = WhoamiCommand::run(&vfs, "/", &[]);
-        assert_eq!(result, "root");
     }
 
     #[test]
@@ -159,9 +167,44 @@ mod tests {
     }
 
     #[test]
+    fn test_find_file_not_found() {
+        let vfs = setup_vfs();
+        let result = FindCommand::run(&vfs, "/", &["nonexistent_file.txt"]);
+        assert_eq!(result, "Error: path not found");
+    }
+
+    #[test]
+    fn test_find_without_arguments() {
+        let vfs = setup_vfs();
+        let result = FindCommand::run(&vfs, "/", &[]);
+        assert_eq!(result, "Error: not enough arguments");
+    }
+
+    #[test]
     fn test_clear_command() {
         let vfs = setup_vfs();
         let result = ClearCommand::run(&vfs, "/", &[]);
         assert_eq!(result, "clear");
+    }
+
+    #[test]
+    fn test_chmod_command() {
+        let vfs = setup_vfs();
+        let result = ChmodCommand::run(&vfs, "/", &["755", "/folder1/file1.txt"]);
+        assert_eq!(result, "Changed permissions for /folder1/file1.txt");
+    }
+
+    #[test]
+    fn test_chmod_file_not_found() {
+        let vfs = setup_vfs();
+        let result = ChmodCommand::run(&vfs, "/", &["755", "/nonexistent_file.txt"]);
+        assert_eq!(result, "Error: file not found");
+    }
+
+    #[test]
+    fn test_chmod_not_enough_arguments() {
+        let vfs = setup_vfs();
+        let result = ChmodCommand::run(&vfs, "/", &["755"]);
+        assert_eq!(result, "Error: not enough arguments");
     }
 }
